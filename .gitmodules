@@ -1,0 +1,3 @@
+[submodule "snakemake_profile"]
+	path = snakemake_profile
+	url = https://github.com/NIH-HPC/snakemake_profile.git
