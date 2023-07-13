@@ -15,7 +15,6 @@ def rename_files(df, olddir, newdir, suffix):
             os.symlink(oldname, newname)
 
 FASTQS = pandas.read_csv('fastq_samples.tsv', sep='\t', dtype=str)
-BAMS = pandas.read_csv('bam_samples.tsv', sep='\t', dtype=str)
 
 
 rename_files(df=FASTQS, 
@@ -23,7 +22,15 @@ rename_files(df=FASTQS,
              newdir='/vf/users/CARDPB/users/wellerca/HBCC-ILM-WGS/INPUT/FASTQ_FILES_RENAMED',
              suffix='_L*.fastq.gz')
 
+
+"""
+# No need to create bam symlinks
+# as files were renamed when converting bam -> fastq
+
+BAMS = pandas.read_csv('bam_samples.tsv', sep='\t', dtype=str)
+
 rename_files(df=BAMS, 
-             olddir='/vf/users/CARDPB/data/HBCC/ILM_WGS_data/BAM_FILES',
-             newdir='/vf/users/CARDPB/users/wellerca/HBCC-ILM-WGS/INPUT/BAM_FILES_RENAMED',
-             suffix='.final.bam')
+            olddir='/vf/users/CARDPB/data/HBCC/ILM_WGS_data/BAM_FILES',
+            newdir='/vf/users/CARDPB/users/wellerca/HBCC-ILM-WGS/INPUT/BAM_FILES_RENAMED',
+            suffix='.final.bam')
+"""
