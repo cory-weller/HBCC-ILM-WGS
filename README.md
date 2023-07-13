@@ -1,4 +1,17 @@
-# HBCC-ILM-WGS
+# STATUS
+
+Done:
+- file names reflect desired conventions
+- rebuilt fastq from mis-mapped `bam` files
+- generated tiny toy `fastq` files
+
+To do:
+- align original `fastq` to `hg38` reference
+- merge `bam` across lanes
+- align remade `fastq` (from `bam`) to `hg38` reference
+- generate `gVCF`
+- generate joint called `VCF`
+
 
 ## Prepare input
 
