@@ -3,5 +3,9 @@ INPUT/FASTQ_FILES
 INPUT/BAM_FILES_RENAMED
 INPUT/FASTQ_FILES_RENAMED
 .snakemake/
-*.fastq.gz
-*.fasta.gz
+*.fastq*    
+*.fasta*
+slurm*.out
+*.sam
+*.bam
+*.cram
