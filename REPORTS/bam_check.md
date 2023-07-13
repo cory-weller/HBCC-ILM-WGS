@@ -1,0 +1,114 @@
+# Checking bam file integrity
+
+Using `samtools quickcheck ${file}.bam` with `samtools/1.17`
+
+The ones that lack EOF:
+
+    CMC-HBCC-ACC-DNA-5591.final.bam
+    CMC-HBCC-ACC-DNA-5785.final.bam
+    CMC-HBCC-DNA-ACC-4025.final.bam
+    CMC-HBCC-DNA-ACC-4042.final.bam
+    CMC-HBCC-DNA-ACC-4051.final.bam
+    CMC-HBCC-DNA-ACC-4057.final.bam
+    CMC-HBCC-DNA-ACC-4080.final.bam
+    CMC-HBCC-DNA-ACC-4127.final.bam
+    CMC-HBCC-DNA-ACC-4131.final.bam
+    CMC-HBCC-DNA-ACC-4135.final.bam
+    CMC-HBCC-DNA-ACC-4176.final.bam
+    CMC-HBCC-DNA-ACC-4178.final.bam
+    CMC-HBCC-DNA-ACC-4190.final.bam
+    CMC-HBCC-DNA-ACC-4218.final.bam
+    CMC-HBCC-DNA-ACC-4220.final.bam
+    CMC-HBCC-DNA-ACC-4231.final.bam
+    CMC-HBCC-DNA-ACC-4243.final.bam
+    CMC-HBCC-DNA-ACC-4249.final.bam
+    CMC-HBCC-DNA-ACC-4255.final.bam
+    CMC-HBCC-DNA-ACC-4257.final.bam
+    CMC-HBCC-DNA-ACC-4261.final.bam
+    CMC-HBCC-DNA-ACC-4275.final.bam
+    CMC-HBCC-DNA-ACC-4284.final.bam
+    CMC-HBCC-DNA-ACC-4290.final.bam
+    CMC-HBCC-DNA-ACC-4312.final.bam
+    CMC-HBCC-DNA-ACC-4314.final.bam
+    CMC-HBCC-DNA-ACC-5563.final.bam
+    CMC-HBCC-DNA-ACC-5569.final.bam
+    CMC-HBCC-DNA-ACC-5573.final.bam
+    CMC-HBCC-DNA-ACC-5578.final.bam
+    CMC-HBCC-DNA-ACC-5600.final.bam
+    CMC-HBCC-DNA-ACC-5602.final.bam
+    CMC-HBCC-DNA-ACC-5611.final.bam
+    CMC-HBCC-DNA-ACC-5643.final.bam
+    CMC-HBCC-DNA-ACC-5649.final.bam
+    CMC-HBCC-DNA-ACC-5655.final.bam
+    CMC-HBCC-DNA-ACC-5657.final.bam
+    CMC-HBCC-DNA-ACC-5669.final.bam
+    CMC-HBCC-DNA-ACC-5677.final.bam
+    CMC-HBCC-DNA-ACC-5682.final.bam
+    CMC-HBCC-DNA-ACC-5689.final.bam
+    CMC-HBCC-DNA-ACC-5754.final.bam
+    CMC-HBCC-DNA-ACC-5761.final.bam
+    CMC-HBCC-DNA-ACC-5765.final.bam
+    CMC-HBCC-DNA-ACC-5769.final.bam
+    CMC-HBCC-DNA-ACC-5771.final.bam
+    CMC-HBCC-DNA-ACC-5789.final.bam
+    CMC-HBCC-DNA-ACC-5791.final.bam
+    CMC-HBCC-DNA-ACC-5793.final.bam
+    CMC-HBCC-DNA-ACC-5797.final.bam
+    CMC-HBCC-DNA-ACC-5799.final.bam
+    CMC-HBCC-DNA-ACC-5805.final.bam
+    CMC-HBCC-DNA-ACC-5809.final.bam
+    CMC-HBCC-DNA-ACC-6001.final.bam
+    CMC-HBCC-DNA-ACC-6007.final.bam
+    CMC-HBCC-DNA-ACC-6009.final.bam
+    CMC-HBCC-DNA-ACC-6011.final.bam
+    CMC-HBCC-DNA-ACC-6013.final.bam
+    CMC-HBCC-DNA-ACC-6017.final.bam
+    CMC-HBCC-DNA-ACC-6031.final.bam
+    CMC-HBCC-DNA-ACC-6033.final.bam
+    CMC-HBCC-DNA-ACC-6035.final.bam
+    CMC-HBCC-DNA-ACC-6041.final.bam
+    CMC-HBCC-DNA-ACC-6058.final.bam
+    CMC-HBCC-DNA-ACC-6756.final.bam
+    CMC-HBCC-DNA-ACC-6767.final.bam
+    CMC-HBCC-DNA-ACC-6768.final.bam
+    CMC-HBCC-DNA-ACC-6769.final.bam
+    CMC-HBCC-DNA-ACC-6774.final.bam
+    CMC-HBCC-DNA-ACC-6776.final.bam
+    CMC-HBCC-DNA-ACC-6779.final.bam
+    CMC-HBCC-DNA-ACC-6783.final.bam
+    CMC-HBCC-DNA-ACC-6785.final.bam
+    CMC-HBCC-DNA-ACC-6809.final.bam
+    CMC-HBCC-DNA-ACC-6811.final.bam
+    CMC-HBCC-DNA-ACC-6812.final.bam
+    CMC-HBCC-DNA-ACC-6818.final.bam
+    CMC-HBCC-DNA-ACC-6872.final.bam
+    HBCC-DNA-CER-13122.final.bam
+    HBCC-DNA-CER-13126.final.bam
+    HBCC-DNA-CER-13147.final.bam
+    HBCC-DNA-CER-13162.final.bam
+    HBCC-DNA-CER-13171.final.bam
+    HBCC-DNA-CER-13177.final.bam
+    HBCC-DNA-CER-13191.final.bam
+    HBCC-DNA-CER-13197.final.bam
+    HBCC-DNA-CER-13206.final.bam
+    HBCC-DNA-CER-13212.final.bam
+    HBCC-DNA-CER-13218.final.bam
+    HBCC-DNA-CER-13224.final.bam
+    HBCC-DNA-CER-13251.final.bam
+    HBCC-DNA-CER-13269.final.bam
+    HBCC-DNA-CER-13272.final.bam
+    HBCC-DNA-CER-13296.final.bam
+    HBCC-DNA-PFC-13349.final.bam
+    HBCC-DNA-PFC-13351.final.bam
+    HBCC-DNA-PFC-13353.final.bam
+    HBCC-DNA-PFC-13357.final.bam
+
+
+The files that didn't show the problem:
+
+    CMC-HBCC-DNA-ACC-6758.final.bam
+    CMC-HBCC-DNA-ACC-6760.final.bam
+    CMC-HBCC-DNA-ACC-6781.final.bam
+    CMC-HBCC-DNA-ACC-6802.final.bam
+    CMC-HBCC-DNA-ACC-6814.final.bam
+    HBCC-DNA-CER-13287.final.bam
