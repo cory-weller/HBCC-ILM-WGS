@@ -23,15 +23,14 @@ fi
 
 
 # Extract job-specific sample
-FILESTEM=${IDS[${N}]}
-r1=${DATADIR}/${FILESTEM}_R1_001.fastq.gz
-r2=${DATADIR}/${FILESTEM}_R1_001.fastq.gz
+id=${IDS[${N}]}
+r1=${DATADIR}/${id}_R1_001.fastq.gz
+r2=${DATADIR}/${id}_R1_001.fastq.gz
 
 
 
 # modules
 module purge
-module load GATK/4.4
 module load bwa/0.7.17
 module load samtools/1.17
 
