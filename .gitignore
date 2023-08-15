@@ -10,3 +10,4 @@ slurm*.out
 *.sam
 *.bam
 *.cram
+convert.txt
