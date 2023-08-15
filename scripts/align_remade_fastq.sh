@@ -3,9 +3,9 @@
 #SBATCH --ntasks-per-node 8
 #SBATCH --mem 64G
 #SBATCH --gres lscratch:200
+#SBATCH --time 8:00:00
 
-
-REF=$(realpath human_g1k_v37.fasta.gz)
+REF=$(realpath '/data/CARDPB/resources/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa')
 DATADIR="${PWD}/INPUT/BAM_FILES"
 BAMS=($(ls ${DATADIR}/*.final.bam))
 IDS=($(basename -a ${BAMS[@]%.final.bam}))
@@ -165,8 +165,8 @@ gatk SamToFastq I=${bam} FASTQ=${r1} SECOND_END_FASTQ=${r2}
 
 # Map sample and output BAM
 echo "INFO: Running bwa:"
-echo "      bwa mem ${REF} ${r1} ${r2} -t 8 -o ${id}.sam" 
-bwa mem ${REF} ${r1} ${r2} -t 8 -o ${id}.sam
+echo "      bwa mem -t 8 -o ${id}.sam ${REF} ${r1} ${r2}" 
+bwa mem -t 8 -o ${id}.sam ${REF} ${r1} ${r2}
 
 
 # Remove fastqs
