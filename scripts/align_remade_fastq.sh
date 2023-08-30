@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #SBATCH --nodes 1
 #SBATCH --ntasks-per-node 8
-#SBATCH --mem 64G
-#SBATCH --gres lscratch:200
-#SBATCH --time 8:00:00
+#SBATCH --mem 32G
+#SBATCH --gres lscratch:400
+#SBATCH --time 24:00:00
 
 REF=$(realpath '/data/CARDPB/resources/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa')
 DATADIR="${PWD}/INPUT/BAM_FILES"
@@ -136,9 +136,12 @@ EOF
 id=$(awk -v s=${FILESTEM} '$1 == s {print $2}' convert.txt)
 
 
+
 bam="${DATADIR}/${FILESTEM}.final.bam"
 r1="r1.fq"
 r2="r2.fq"
+
+echo "input bam is $bam"
 
 
 # modules
@@ -150,11 +153,21 @@ module load samtools/1.17
 
 # Set up working and output directories
 OUTDIR="${PWD}/OUTPUT/REMADE_BAMS/"
+FINALFILE="${OUTDIR}/${id}.bam"
+
+
+# Exit if finel output already exists
+if [ -f "${FINALFILE}" ]; then
+    echo "INFO: Final output ${FINALFILE} already exists."
+    echo "Exiting..."
+    exit 0
+fi
+
 mkdir -p ${OUTDIR}
-TMPDIR="/lscratch/${SLURM_JOB_ID}"
-mkdir -p ${TMPDIR}
-cd ${TMPDIR}
-echo "INFO: Working in ${TMPDIR}"
+TMP="/lscratch/${SLURM_JOB_ID}/"
+mkdir -p ${TMP}
+cd ${TMP}
+echo "INFO: Working in ${TMP}"
 
 
 # Convert from bam to FASTQ
@@ -163,24 +176,35 @@ echo "      gatk SamToFastq I=${bam} FASTQ=${r1} SECOND_END_FASTQ=${r2}"
 gatk SamToFastq I=${bam} FASTQ=${r1} SECOND_END_FASTQ=${r2}
 
 
+# Checkpoint to ensure reads exist
+if [  -f "${r1}" ] && [ ! -f "${r2}" ]; then
+    echo "ERROR: the following read files do not exist"
+    echo "       ${r1}"
+    echo "       ${r2}"
+    echo "Exiting..."
+    exit 1
+fi
+
+
 # Map sample and output BAM
 echo "INFO: Running bwa:"
-echo "      bwa mem -t 8 -o ${id}.sam ${REF} ${r1} ${r2}" 
-bwa mem -t 8 -o ${id}.sam ${REF} ${r1} ${r2}
+echo "      bwa mem -t 8 ${REF} ${r1} ${r2} | samtools sort -@ 8 -T ${TMP} -o ${id}.bam -" 
+bwa mem -t 8 ${REF} ${r1} ${r2} | samtools sort -@ 8 -T ${TMP} -o ${id}.bam -
 
 
-# Remove fastqs
-rm ${r1} ${r2}
+# Checkpoint to ensure BAM exists
+if [ ! -f "${id}.bam" ]; then
+    echo "ERROR: the following bam file does not exist"
+    echo "       ${id}.bam"
+    echo "Exiting..."
+    exit 1
+else
+    echo "INFO: bam conversion complete! Removing ${r2} and ${r2}"
+    rm ${r1} ${r2}
+fi
 
 
-# Convert SAM to BAM
-echo "INFO: converting to bam:"
-echo "      samtools view -b ${id}.sam | samtools sort -o ${id}.bam -"
-samtools view -b ${id}.sam | samtools sort -o ${id}.bam -
 
-
-# Remove sam
-rm ${id}.sam
 
 
 # Move to permanent dir
