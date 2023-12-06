@@ -1,3 +1,4 @@
+
 # STATUS
 
 Done:
@@ -146,8 +147,8 @@ DATADIR="${PWD}/INPUT/BAM_FILES"
 BAMS=($(ls ${DATADIR}/*.final.bam))
 IDS=($(basename -a ${BAMS[@]%.final.bam}))
 
-FILES=($(ls INPUT/REMADE_FASTQ_FROM_BAM/*R1_001.fastq.gz))
-for fn in ${FILES[@]%_R1_001.fastq.gz}; do
+FILES=($(ls INPUT/BAM_FILES_RENAMED/*final.bam))
+for fn in ${FILES[@]%.final.bam}; do
     fs=$(basename $fn)
     if [ ! -f "OUTPUT/REMADE_BAMS/${fs}.bam" ]; then
         N=$(grep -n $fs convert.txt | cut -d ':' -f 1)
@@ -233,6 +234,8 @@ sbatch scripts/merge_bams.sh 81994              # 7161139
 To split paired-end `fastq` files into 4 parts (for each R1 and R2):
 
 ```bash
+id='81962'
+
 module load seqkit
 seqkit split2 \
 -1 ${id}_R1_001.fastq.gz \
@@ -240,5 +243,243 @@ seqkit split2 \
 -p 4 \
 -e .gz \
 -O ${id}_split 
-id='81962'
 ```
+
+```bash
+sbatch scripts/splitbam.sh 81948
+sbatch scripts/splitbam.sh 81962
+sbatch scripts/splitbam.sh 82047
+sbatch scripts/splitbam.sh 82050
+```
+
+```bash
+sbatch scripts/align_split_fastq.sh 81948
+sbatch scripts/align_split_fastq.sh 81962
+sbatch scripts/align_split_fastq.sh 82047
+sbatch scripts/align_split_fastq.sh 82050
+```
+
+parallel -j 1 sbatch scripts/align_split_fastq.sh :::  81948 81962 82047 82050 ::: 1 2 3 4
+
+7455136
+7455138
+7455139
+7455140
+7455141
+7455142
+7455143
+7455144
+7455145
+7455146
+7455147
+7455148
+7455149
+7455150
+7455151
+7455152
+
+sbatch scripts/merge_bams.sh 81926-FASTQ
+sbatch scripts/merge_bams.sh 81948
+sbatch scripts/merge_bams.sh 82047
+sbatch scripts/merge_bams.sh 82050
+
+# Generate `gvcf` files
+Here, we generate a separate `gvcf` per unique `sample * chromosome` combination in order to parallelize as much as possible.
+
+First, generate a text file `prepared_bams.txt` listing the full path to all `bam` files:
+
+```bash
+ls OUTPUT/MERGED_BAMS/*.bam > prepared_bams.txt
+ls OUTPUT/REMADE_BAMS/*.bam >> prepared_bams.txt
+```
+
+Then submit job array for [`build-gvcf.sh`](scripts/build-gvcf.sh). The 1st job generates `gvcf` for the first sample in `prepared_bams.txt`, and so  on, by using the `${SLURM_ARRAY_TASK_ID}` variable assigned to each job in the array.
+
+We have 154 unique bam files, thus submit an array 1-154:
+```bash
+sbatch --array=1-154%10 scripts/build-gvcf.sh
+sbatch --array=24 scripts/build-gvcf.sh
+
+```
+
+# Combine chromosomes per sample
+Next, we combine all `gvcf` pertaining to a single sample using `gatk GatherVcfs`.
+
+```bash
+ls OUTPUT/gvcf/${sample}_*.g.vcf.gz
+gatk GatherVcfs \
+    -I ${sample}.list \
+    -O ${sample}.g.vcf.gz \
+    -R ${REF} \
+    --CREATE_INDEX True
+
+```
+
+# Combine all samples
+Next, we combine all samples using `GenomicsDBImport` (which is preferred to `CombineGVCFs`).
+```bash
+gatk GenomicsDBImport \
+    -V data/gvcfs/mother.g.vcf \
+    -V data/gvcfs/father.g.vcf \
+    -V data/gvcfs/son.g.vcf \
+    --genomicsdb-workspace-path my_database \
+    --intervals chr20,chr21
+```
+# Joint genotyping
+`GenotypeGVCFs `
+
+# Extract alt contigs only
+```bash
+module load samtools
+inbam='OUTPUT/REMADE_BAMS/81940.bam'
+id=$(basename ${inbam%.bam})
+
+```
+```bash
+module load GATK
+
+
+cat alt_contigs.list | tr "\n" " " | xargs samtools view -hb ${inbam} | \
+gatk AddOrReplaceReadGroups \
+    I=/dev/stdin \
+    O=${id}_alt_contigs_rgs.bam \
+    SORT_ORDER=coordinate \
+    RGLB=lib1 \
+    RGPL=ILLUMINA \
+    RGPU=unit1 \
+    RGSM=${ID} \
+    CREATE_INDEX=True 
+```
+
+```bash
+module purge
+module load samtools
+module load GATK
+
+REF=$(realpath '/data/CARDPB/resources/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa')
+inbam='OUTPUT/REMADE_BAMS/81940.bam'
+id=$(basename ${inbam%.bam})
+contig='alt_contigs'
+
+cat alt_contigs.list | tr "\n" " " | xargs samtools view -hb ${inbam} | \
+gatk AddOrReplaceReadGroups \
+    I=/dev/stdin \
+    O=test.out.bam \
+    SORT_ORDER=coordinate \
+    RGLB=lib1 \
+    RGPL=ILLUMINA \
+    RGPU=unit1 \
+    RGSM=${id} \
+    CREATE_INDEX=true
+    
+
+gatk HaplotypeCaller \
+    -R ${REF} \
+    -L alt_contigs.list \
+    -I test.out.bam \
+    -O ${id}_${contig}.g.vcf.gz \
+    -ERC GVCF
+```
+
+```bash
+contig='chr1'
+
+samtools view -hb ${inbam} ${contig} | \
+gatk AddOrReplaceReadGroups \
+    I=/dev/stdin \
+    O=${id}.${contig}.bam \
+    SORT_ORDER=coordinate \
+    RGLB=lib1 \
+    RGPL=ILLUMINA \
+    RGPU=unit1 \
+    RGSM=${id} \
+    CREATE_INDEX=true
+    
+
+gatk HaplotypeCaller \
+    -R ${REF} \
+    -L ${contig} \
+    -I ${id}.${contig}.bam \
+    -O ${id}.${contig}.g.vcf.gz \
+    -ERC GVCF
+```
+
+```bash
+# Set up list of contigs for HaplotypeCaller
+chrs=($(seq 22 -1 1))
+chrs=${chrs[@]/#/chr}
+intervals="chrX chrY chrM ${chrs}"
+intervals=(${intervals})
+
+for interval in ${intervals[@]}; do
+    while read bamfile; do
+        id=$(basename ${bamfile%.bam})
+        id=${id%.merged}
+        if [ ! -f "OUTPUT/gvcf/${id}_${interval}.g.vcf.gz.tbi" ]; then
+            echo $bamfile $interval
+        fi
+        #echo $(realpath $bam) $interval
+    done < prepared_bams.txt
+done > for_haplotype_caller.txt
+
+```
+
+
+
+sbatch --array=1 scripts/make_examples.sh chrY
+
+scripts/make_examples.sh chrY
+
+```bash
+jid='8307418'
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr8)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr9)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr10)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr11)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr12)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr13)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr14)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr15)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr16)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr17)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr18)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr19)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr20)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr21)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chr22)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chrX)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chrY)
+jid=$(sbatch --array=1-154%10 --dependency afterany:${jid} scripts/make_examples.sh chrM)
+```
+
+```bash
+while read chr len; do
+    echo -e "$chr\t0\t$len" > hg38_$chr.bed
+done < <(samtools idxstats OUTPUT/MERGED_BAMS/81988.merged.bam | \
+    grep -v 'chrUn' | \
+    grep -v 'random' | \
+    grep -v 'EBV' | \
+    grep -v '*' | cut -f 1,2)
+```
+
+```bash
+sbatch --array=142 scripts/make_examples.sh chr7
+8658188
+```
+
+sbatch scripts/glnexus_bcf.sh chr11
+sbatch scripts/glnexus_bcf.sh chr12
+sbatch scripts/glnexus_bcf.sh chr14
+sbatch scripts/glnexus_bcf.sh chr15
+
+grep -n $(basename $(grep -v -f <(ls OUTPUT/gvcf/chr13/ | cut -d '_' -f 1) prepared_bams.txt) | cut -d '.' -f 1) prepared_bams.txt
+sbatch --array=129 scripts/make_examples.sh chr13
+8658188_142
+samtools view -bh <file.bam> <read>  >  file_read.bam 
+
+module load samtools
+samtools view  -bh /vf/users/CARDPB/users/wellerca/HBCC-ILM-WGS/OUTPUT/REMADE_BAMS/82060.bam chr6 > 82060_chr6.bam
+
+samtools view  -f 256 /vf/users/CARDPB/users/wellerca/HBCC-ILM-WGS/OUTPUT/REMADE_BAMS/82060.bam > reads_256.bam
+
+samtools view -bh in.bam chr1 > in_chr1.bam

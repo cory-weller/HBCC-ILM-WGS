@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #SBATCH --nodes 1
 #SBATCH --ntasks-per-node 8
-#SBATCH --mem 32G
-#SBATCH --gres lscratch:400
-#SBATCH --time 24:00:00
+#SBATCH --mem 50G
+#SBATCH --gres lscratch:700
+#SBATCH --time 36:00:00
 
 REF=$(realpath '/data/CARDPB/resources/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa')
 DATADIR="${PWD}/INPUT/BAM_FILES"

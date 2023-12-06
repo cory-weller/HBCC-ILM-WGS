@@ -13,7 +13,7 @@ module load samtools/1.17
 
 mergebam() {
     local id=${1}
-    local in_bams=$(ls OUTPUT/UNMERGED_BAMS/${id}_L00*.bam | tr '\n' ' ')
+    local in_bams=$(ls OUTPUT/UNMERGED_BAMS/${id}_*.bam | tr '\n' ' ')
     echo "id is ${id}"
     echo "CMD: samtools merge --write-index -@ 8  ${OUTDIR}/${id}.merged.bam ${in_bams}"
     samtools merge --write-index -@ 8  ${OUTDIR}/${id}.merged.bam ${in_bams}
